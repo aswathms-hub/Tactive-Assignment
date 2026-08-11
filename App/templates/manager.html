@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Manager Dashboard - Smart Leave Approval System{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark mb-1"><i class="bi bi-shield-lock text-warning me-2"></i>Manager Approval Dashboard</h2>
+        <p class="text-secondary mb-0">Review pending leave requests and approve or reject applications.</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+            <i class="bi bi-hourglass-split me-1"></i>{{ pending_requests|length }} Pending Action
+        </span>
+    </div>
+</div>
+
+{% if error_msg %}
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error_msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+<!-- Pending Requests Queue -->
+<div class="card border-0 shadow-sm rounded-3 mb-5 bg-white">
+    <div class="card-header bg-warning bg-opacity-10 py-3 border-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-clock-history me-2 text-warning"></i>Pending Requests Queue
+        </h5>
+        <small class="text-muted">State-changing POST actions strictly enforced on server</small>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Req #</th>
+                    <th>Employee Name</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Duration</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th class="text-center" style="min-width: 180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if pending_requests %}
+                    {% for req in pending_requests %}
+                    <tr>
+                        <td class="fw-bold text-muted">#{{ req.id }}</td>
+                        <td class="fw-semibold text-dark">{{ req.employee_name }}</td>
+                        <td>{{ req.start_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ req.end_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ req.duration_days }} day{% if req.duration_days > 1 %}s{% endif %}</span>
+                        </td>
+                        <td>
+                            {% if req.reason %}
+                                <span class="d-inline-block text-truncate" style="max-width: 250px;" title="{{ req.reason }}">
+                                    {{ req.reason }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted fst-italic">None provided</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>PENDING</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <!-- Approve Form -->
+                                <form action="{{ url_for('main.approve_leave', leave_id_str=req.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success px-3 shadow-sm">
+                                        <i class="bi bi-check-lg me-1"></i>Approve
+                                    </button>
+                                </form>
+                                <!-- Reject Form -->
+                                <form action="{{ url_for('main.reject_leave', leave_id_str=req.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger px-3 shadow-sm" onclick="return confirm('Are you sure you want to reject this leave request?');">
+                                        <i class="bi bi-x-lg me-1"></i>Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-check-circle fs-2 text-success d-block mb-2"></i>
+                            <strong>No pending leave requests!</strong> All requests have been reviewed.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Complete History Table -->
+<div class="card border-0 shadow-sm rounded-3 bg-white">
+    <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-journal-text me-2 text-primary"></i>All Leave Application History
+        </h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Req #</th>
+                    <th>Employee Name</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Duration</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Submitted At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if all_requests %}
+                    {% for req in all_requests %}
+                    <tr>
+                        <td class="fw-bold text-muted">#{{ req.id }}</td>
+                        <td class="fw-semibold">{{ req.employee_name }}</td>
+                        <td>{{ req.start_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ req.end_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ req.duration_days }} day{% if req.duration_days > 1 %}s{% endif %}</span>
+                        </td>
+                        <td>
+                            {% if req.reason %}
+                                {{ req.reason }}
+                            {% else %}
+                                <span class="text-muted fst-italic">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if req.status == 'PENDING' %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>PENDING</span>
+                            {% elif req.status == 'APPROVED' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>APPROVED</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>REJECTED</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ req.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">No historical data available.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

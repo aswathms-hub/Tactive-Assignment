@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Apply for Leave - Smart Leave Approval System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Error Banner -->
+        {% if errors %}
+            <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4">
+                <div class="d-flex align-items-center mb-2 fw-bold fs-6">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Validation Failed:
+                </div>
+                <ul class="mb-0 ps-3">
+                    {% for err in errors %}
+                        <li>{{ err }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="card border-0 shadow-sm rounded-3 bg-white">
+            <div class="card-header bg-dark text-white py-3">
+                <h4 class="fw-bold mb-0"><i class="bi bi-file-earmark-plus me-2 text-warning"></i>Submit Leave Request</h4>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ url_for('main.apply_leave') }}" method="POST" id="leaveForm" novalidate>
+                    <!-- Employee Name -->
+                    <div class="mb-3">
+                        <label for="employee_name" class="form-label fw-semibold">Employee Name <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="employee_name" name="employee_name" 
+                                   value="{{ form_data.get('employee_name', '') }}" placeholder="e.g. John Doe" required>
+                        </div>
+                        <div class="form-text">Full name of the employee requesting leave.</div>
+                    </div>
+
+                    <!-- Date Range Row -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="start_date" class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                                <input type="date" class="form-control" id="start_date" name="start_date" 
+                                       value="{{ form_data.get('start_date', '') }}" required>
+                            </div>
+                            <div class="form-text">Cannot be in the past.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="end_date" class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
+                                <input type="date" class="form-control" id="end_date" name="end_date" 
+                                       value="{{ form_data.get('end_date', '') }}" required>
+                            </div>
+                            <div class="form-text">Must be $\ge$ start date. Max 10 days total.</div>
+                        </div>
+                    </div>
+
+                    <!-- Reason -->
+                    <div class="mb-4">
+                        <label for="reason" class="form-label fw-semibold">
+                            Reason for Leave 
+                            <span id="reason-req-badge" class="badge bg-secondary ms-1 fw-normal">Optional for $\le$ 5 days</span>
+                        </label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" 
+                                  placeholder="Provide reason for leave (Required if leave duration exceeds 5 calendar days)...">{{ form_data.get('reason', '') }}</textarea>
+                        <div class="form-text">Mandatory if your requested leave duration is 6 days or longer.</div>
+                    </div>
+
+                    <!-- Submission Info Box -->
+                    <div class="alert alert-info border-0 rounded-3 small mb-4">
+                        <i class="bi bi-shield-check me-2"></i>
+                        All submissions are validated against business rules (duration, overlap, and required fields) before storing in SQLite.
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+                            <i class="bi bi-send me-1"></i>Submit Leave Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

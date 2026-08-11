@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Employee Leave Requests - Smart Leave Approval System{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-7">
+        <h2 class="fw-bold text-dark mb-1">Submitted Leave Requests</h2>
+        <p class="text-secondary mb-0">View all employee leave applications and their current approval status.</p>
+    </div>
+    <div class="col-md-5 mt-3 mt-md-0">
+        <!-- Search Filter Form -->
+        <form method="GET" action="{{ url_for('main.view_requests') }}" class="d-flex gap-2">
+            <input type="text" name="employee_name" class="form-control" placeholder="Search by Employee Name..." value="{{ search_name }}">
+            <button type="submit" class="btn btn-dark"><i class="bi bi-search"></i></button>
+            {% if search_name %}
+                <a href="{{ url_for('main.view_requests') }}" class="btn btn-outline-secondary" title="Clear Filter"><i class="bi bi-x-circle"></i></a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3 bg-white">
+    <div class="card-header bg-white py-3">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-list-task me-2 text-primary"></i>
+            {% if search_name %}
+                Requests for "{{ search_name }}"
+            {% else %}
+                All Requests
+            {% endif %}
+        </h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Req #</th>
+                    <th>Employee Name</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Duration</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Submitted At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if requests_list %}
+                    {% for req in requests_list %}
+                    <tr>
+                        <td class="fw-bold text-muted">#{{ req.id }}</td>
+                        <td class="fw-semibold">{{ req.employee_name }}</td>
+                        <td>{{ req.start_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ req.end_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ req.duration_days }} day{% if req.duration_days > 1 %}s{% endif %}</span>
+                        </td>
+                        <td>
+                            {% if req.reason %}
+                                {{ req.reason }}
+                            {% else %}
+                                <span class="text-muted fst-italic">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if req.status == 'PENDING' %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>PENDING</span>
+                            {% elif req.status == 'APPROVED' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>APPROVED</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>REJECTED</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ req.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="bi bi-search fs-3 d-block mb-2"></i>No requests found matching your query.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
