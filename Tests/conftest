@@ -1,1 +1,39 @@
+import os
+import pytest
+from app import create_app, db
+from app.models import LeaveRequest
+
+
+@pytest.fixture
+def app():
+    """
+    Creates and configures a new Flask app instance for each test.
+    Uses an in-memory SQLite database for test isolation.
+    """
+    test_config = {
+        "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        "SECRET_KEY": "test-secret-key-smart-leave",
+        "WTF_CSRF_ENABLED": False,
+    }
+
+    app = create_app(config_override=test_config)
+
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.session.remove()
+        db.drop_all()
+
+
+@pytest.fixture
+def client(app):
+    """A test client for the app."""
+    return app.test_client()
+
+
+@pytest.fixture
+def runner(app):
+    """A test runner for the app's CLI commands."""
+    return app.test_cli_runner()
 
